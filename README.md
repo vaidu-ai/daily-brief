@@ -4,8 +4,8 @@ A clean, minimal GitHub Pages daily brief for home electricity readings from Hom
 
 Latest snapshot:
 
-- Total home consumption: 19.6 kWh
-- From grid: 10.8 kWh
+- Total home consumption: 20.6 kWh
+- From grid: 11.8 kWh
 - From solar self-consumption: 8.8 kWh
 - Solar generated: 55.3 kWh
 - PV1 east generated: 34.2 kWh
