@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Brief — Home Energy</title>
+  <meta name="description" content="A public, static daily brief for home electricity: grid consumption, solar self-consumption, and solar generation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap" rel="stylesheet" />
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --ink: #1c1c1a;
+  --muted: #6b6b66;
+  --line: #e8e7e2;
+  --accent: #5b6b5a;
+  --accent-soft: #eef0ec;
+  --sun: #c08a2b;
+  --grid: #4e667a;
+  --radius: 16px;
+  --maxw: 1040px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+h1,h2,h3 { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.01em; line-height: 1.12; }
+a { color: inherit; text-decoration: none; }
+a:focus-visible,.btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent), white 55%); outline-offset: 3px; }
+header { position: sticky; top: 0; z-index: 50; background: rgba(250,250,248,.84); backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--line); }
+.nav { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: "Fraunces", Georgia, serif; font-size: 20px; font-weight: 500; }
+.mark { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); color: #fff; display: grid; place-items: center; font: 600 14px/1 Inter, sans-serif; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a { font-size: 15px; color: var(--muted); transition: color .2s var(--ease); }
+.nav-links a:hover { color: var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border-radius: 999px; font-size: 15px; font-weight: 500; transition: transform .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease); }
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(28,28,26,.18); }
+.hero { padding: 74px 0 42px; text-align: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); padding: 6px 14px; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--line); margin-bottom: 28px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.hero h1 { font-size: clamp(42px, 7vw, 76px); margin-bottom: 24px; }
+.hero p { max-width: 650px; margin: 0 auto 34px; color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); }
+.summary { margin: 34px auto 0; max-width: 880px; background: var(--surface); border: 1px solid #deddd6; border-radius: var(--radius); box-shadow: 0 18px 45px -24px rgba(28,28,26,.22); overflow: hidden; text-align: left; }
+.summary-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { border: 1px solid var(--line); background: var(--accent-soft); border-radius: 999px; padding: 4px 10px; }
+.metrics { display: grid; grid-template-columns: 1.1fr .9fr .9fr; gap: 1px; background: var(--line); }
+.metric { background: var(--surface); padding: 30px 28px; }
+.label { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.value { font-family: "Fraunces", Georgia, serif; font-size: clamp(34px, 5vw, 54px); line-height: 1; letter-spacing: -0.03em; }
+.unit { font-family: Inter, sans-serif; font-size: 16px; color: var(--muted); margin-left: 6px; }
+.note { color: var(--muted); font-size: 14px; margin-top: 12px; }
+section { padding: 54px 0; }
+.section-head { max-width: 650px; margin-bottom: 30px; }
+.section-head .eyebrow { margin-bottom: 18px; }
+.section-head h2 { font-size: clamp(30px,4vw,44px); margin-bottom: 16px; }
+.section-head p { color: var(--muted); font-size: 17px; }
+.split { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 28px; }
+.card h3 { font-size: 22px; margin-bottom: 10px; }
+.card p { color: var(--muted); font-size: 15px; }
+.bar { height: 14px; background: var(--accent-soft); border-radius: 999px; overflow: hidden; display: flex; margin: 24px 0 16px; border: 1px solid var(--line); }
+.bar-solar { width: 46%; background: var(--sun); }
+.bar-grid { width: 54%; background: var(--grid); }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.key { display: inline-flex; align-items: center; gap: 8px; }
+.swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.swatch.sun { background: var(--sun); } .swatch.grid { background: var(--grid); }
+.table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.table th,.table td { padding: 16px 18px; text-align: left; border-bottom: 1px solid var(--line); }
+.table tr:last-child td { border-bottom: none; }
+.table th { color: var(--muted); font-size: 13px; font-weight: 500; }
+.table td:last-child { text-align: right; font-weight: 600; }
+.cta-band { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 46px 40px; text-align: center; }
+.cta-band h2 { font-size: clamp(28px,4vw,40px); margin-bottom: 14px; }
+.cta-band p { color: var(--muted); font-size: 16px; max-width: 560px; margin: 0 auto; }
+footer { border-top: 1px solid var(--line); padding: 32px 0; margin-top: 8px; }
+.foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.foot p,.foot a { color: var(--muted); font-size: 14px; }
+.foot-links { display: flex; gap: 24px; }
+@media (max-width: 860px) { .metrics,.split { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .wrap { padding: 0 20px; } .nav-links a:not(.btn-primary) { display: none; } .hero { padding-top: 54px; } section { padding: 42px 0; } .metric,.card { padding: 24px 22px; } }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top"><span class="mark">D</span> Daily Brief</a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#mix">Energy mix</a>
+        <a href="#sources">Sources</a>
+        <a class="btn btn-primary" href="https://github.com/vaidu-ai/daily-brief">Source</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span> Home electricity snapshot</span>
+        <h1>Today’s energy,<br />quietly summarized.</h1>
+        <p>A small public brief generated from Home Assistant energy sensors: electricity consumed from the grid, consumed directly from solar, and total solar production.</p>
+
+        <div class="summary" aria-label="Daily energy summary">
+          <div class="summary-bar">
+            <span>13 Jun 2026, evening snapshot</span>
+            <div class="pills"><span class="pill">kWh today</span><span class="pill">static snapshot</span></div>
+          </div>
+          <div class="metrics">
+            <article class="metric">
+              <div class="label">Total home consumption</div>
+              <div class="value">19.2<span class="unit">kWh</span></div>
+              <p class="note">Grid plus solar used by the home.</p>
+            </article>
+            <article class="metric">
+              <div class="label">From grid</div>
+              <div class="value">10.4<span class="unit">kWh</span></div>
+              <p class="note">Imported/consumed energy today.</p>
+            </article>
+            <article class="metric">
+              <div class="label">From solar</div>
+              <div class="value">8.8<span class="unit">kWh</span></div>
+              <p class="note">Solar generated and used locally.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="mix">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span> Energy mix</span>
+          <h2>46% solar self-consumed, 54% from grid.</h2>
+          <p>Solar self-consumption is calculated as solar generation minus feed-in export. The rest of today’s home consumption came from the grid.</p>
+        </div>
+        <div class="card">
+          <div class="bar" aria-label="Energy mix bar"><div class="bar-solar"></div><div class="bar-grid"></div></div>
+          <div class="legend">
+            <span class="key"><span class="swatch sun"></span> Solar used at home: 8.8 kWh</span>
+            <span class="key"><span class="swatch grid"></span> Grid consumed: 10.4 kWh</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sources">
+      <div class="wrap split">
+        <article class="card">
+          <h3>Solar production</h3>
+          <p>The array generated 55.3 kWh today. 46.5 kWh was exported/feed-in, leaving 8.8 kWh used directly by the home.</p>
+        </article>
+        <article class="card">
+          <h3>Public-safe by design</h3>
+          <p>This page shows only rounded energy readings and source sensor names. It does not include tokens, addresses, device serials, private paths, or Home Assistant credentials.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <table class="table" aria-label="Source readings">
+          <thead><tr><th>Reading</th><th>Source</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Solar generated today</td><td>Solax Yield today</td><td>55.3 kWh</td></tr>
+            <tr><td>Solar exported today</td><td>Solax Feed-in Energy today</td><td>46.5 kWh</td></tr>
+            <tr><td>Grid consumed today</td><td>Solax Consumed Energy today</td><td>10.4 kWh</td></tr>
+            <tr><td>Calculated solar used at home</td><td>Generated minus exported</td><td>8.8 kWh</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="cta-band">
+          <h2>Static for now, automation-ready.</h2>
+          <p>Home Assistant latest energy reading: 2026-06-13 18:58 UTC. This repository can later be updated on a schedule for an automatic daily brief.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <p>© 2026 Daily Brief. Minimal, public, and secret-free.</p>
+      <div class="foot-links"><a href="#top">Top</a><a href="#mix">Energy mix</a><a href="https://github.com/vaidu-ai/daily-brief">GitHub</a></div>
+    </div>
+  </footer>
+</body>
+</html>
