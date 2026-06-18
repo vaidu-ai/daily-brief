@@ -3,64 +3,317 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daily Energy Brief</title>
-  <meta name="description" content="A public daily solar and grid energy brief generated from Home Assistant aggregate sensors." />
+  <title>Solar Stats</title>
+  <meta name="description" content="Daily aggregate solar generation, grid import, feed-in export, and PV channel split." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
-:root { color-scheme: light; --bg:#efece3; --surface:#fbfaf6; --ink:#131210; --muted:#6c685e; --line:#ddd8cb; --accent:#1f3df5; --accent-2:#ff4d2e; --accent-soft:#e3e6ff; --on-accent:#fff; --radius:14px; --maxw:1080px; --ease:cubic-bezier(.2,.8,.2,1); }
-* { box-sizing:border-box; margin:0; padding:0; } html { scroll-behavior:smooth; }
-body { font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; overflow-x:hidden; }
-body::before { content:""; position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:.04; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.wrap { max-width:var(--maxw); margin:0 auto; padding:0 28px; }
-h1,h2,h3 { font-family:"Bricolage Grotesque","Arial Narrow",sans-serif; font-weight:800; letter-spacing:-.025em; line-height:1; }
-a { color:inherit; text-decoration:none; }
-.mono { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; }
-header { position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--bg) 84%,transparent); backdrop-filter:saturate(160%) blur(10px); border-bottom:1px solid var(--line); }
-.nav { min-height:70px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
-.brand { display:flex; align-items:center; gap:11px; }
-.brand .name { font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:21px; letter-spacing:-.03em; }
-.mark { width:30px; height:30px; border-radius:9px; background:var(--ink); color:var(--bg); display:grid; place-items:center; transform:rotate(-6deg); font-family:"Bricolage Grotesque"; font-weight:800; }
-.nav-links { display:flex; gap:30px; align-items:center; } .nav-links a.lk { color:var(--muted); font-size:14.5px; transition:color .2s var(--ease); } .nav-links a.lk:hover { color:var(--ink); }
-.btn { display:inline-flex; align-items:center; gap:8px; justify-content:center; min-height:44px; font-size:14.5px; font-weight:600; padding:11px 22px; border-radius:999px; transition:transform .18s var(--ease),background .2s var(--ease),box-shadow .2s var(--ease),color .2s var(--ease); cursor:pointer; border:1px solid transparent; }
-.btn-primary { background:var(--accent); color:var(--on-accent); box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 60%,#000); } .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 0 color-mix(in srgb,var(--accent) 60%,#000); }
-.btn-ghost { background:transparent; color:var(--ink); border-color:var(--ink); } .btn-ghost:hover { background:var(--ink); color:var(--bg); }
-.hero { padding:88px 0 54px; } .eyebrow { display:inline-flex; align-items:center; gap:9px; color:var(--accent); margin-bottom:28px; } .pulse { width:8px; height:8px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 0 0 color-mix(in srgb,var(--accent-2) 70%,transparent); animation:pulse 2.2s infinite; }
-@keyframes pulse { 0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent-2) 60%,transparent)} 70%{box-shadow:0 0 0 9px transparent} 100%{box-shadow:0 0 0 0 transparent} }
-.hero h1 { font-size:clamp(46px,9vw,108px); max-width:14ch; margin-bottom:28px; } .hero h1 .ink-accent { color:var(--accent); } .hero h1 em { font-style:italic; font-weight:500; }
-.hero-lead { font-size:clamp(17px,2.1vw,20px); color:var(--muted); max-width:54ch; margin-bottom:34px; } .hero-cta { display:flex; gap:14px; flex-wrap:wrap; align-items:center; } .hero-note { color:var(--muted); font-size:13px; }
-.marquee { margin-top:58px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); overflow:hidden; white-space:nowrap; padding:16px 0; -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
-.marquee-track { display:inline-flex; gap:56px; animation:scroll 30s linear infinite; } .marquee-track span { color:var(--muted); } .marquee-track span b { color:var(--ink); font-weight:500; } @keyframes scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-.preview-wrap { padding:20px 0 50px; } .panel,.preview { background:var(--surface); border:1px solid var(--ink); border-radius:var(--radius); box-shadow:10px 10px 0 var(--ink); overflow:hidden; }
-.preview { max-width:760px; margin:0 auto; } .preview-bar,.panel-bar { display:flex; align-items:center; gap:10px; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line); background:var(--bg); }
-.traffic { display:flex; gap:7px; } .traffic span { width:11px; height:11px; border-radius:50%; border:1.5px solid var(--ink); } .traffic span:nth-child(1){background:var(--accent-2)} .traffic span:nth-child(2){background:#f2c037} .traffic span:nth-child(3){background:#2fbf71}
-.preview-title { color:var(--muted); margin-left:6px; } .chat { padding:26px; display:flex; flex-direction:column; gap:14px; } .msg { max-width:80%; padding:13px 17px; font-size:15px; line-height:1.45; } .msg.user { align-self:flex-end; background:var(--accent); color:var(--on-accent); border-radius:14px 14px 4px 14px; } .msg.agent { align-self:flex-start; background:var(--bg); border:1px solid var(--line); border-radius:14px 14px 14px 4px; }
-.typing { display:inline-flex; gap:5px; align-items:center; padding:2px 0; } .typing i { width:6px; height:6px; border-radius:50%; background:var(--accent); opacity:.4; animation:blink 1.4s infinite; } .typing i:nth-child(2){animation-delay:.2s} .typing i:nth-child(3){animation-delay:.4s} @keyframes blink { 0%,60%,100%{opacity:.25} 30%{opacity:1} }
-section { padding:76px 0; } .section-head { max-width:660px; margin-bottom:42px; } .section-head .mono { color:var(--accent); display:block; margin-bottom:18px; } .section-head h2 { font-size:clamp(32px,5vw,56px); margin-bottom:18px; } .section-head p { color:var(--muted); font-size:17px; }
-.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--ink); border-radius:var(--radius); overflow:hidden; background:var(--ink); } .card { background:var(--surface); padding:34px 30px; transition:background .25s var(--ease); position:relative; } .grid .card { border-right:1px solid var(--ink); border-bottom:1px solid var(--ink); } .grid .card:nth-child(3n){border-right:0} .grid .card:nth-last-child(-n+3){border-bottom:0} .card:hover { background:var(--accent-soft); } .idx { font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--muted); }
-.icon { width:46px; height:46px; border-radius:12px; border:1.5px solid var(--ink); display:grid; place-items:center; margin:16px 0 18px; color:var(--ink); background:var(--bg); } .card:hover .icon { background:var(--accent); color:var(--on-accent); border-color:var(--accent); } .card h3 { font-size:21px; margin-bottom:9px; } .card p { color:var(--muted); font-size:14.5px; }
-.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:36px; } .step { border-top:2px solid var(--ink); padding-top:20px; } .step .num { font-family:"Bricolage Grotesque"; font-weight:800; font-size:40px; color:var(--accent); line-height:1; margin-bottom:14px; } .step h3 { font-size:20px; margin-bottom:8px; } .step p { color:var(--muted); font-size:15px; }
-.cta-band { background:var(--ink); color:var(--bg); border-radius:24px; padding:70px 46px; text-align:center; position:relative; overflow:hidden; } .cta-band::after { content:""; position:absolute; right:-80px; top:-80px; width:280px; height:280px; border-radius:50%; background:radial-gradient(circle,color-mix(in srgb,var(--accent) 55%,transparent),transparent 70%); } .cta-band .mono { color:color-mix(in srgb,var(--accent) 50%,#fff); display:block; margin-bottom:18px; } .cta-band h2 { font-size:clamp(32px,5vw,56px); margin-bottom:18px; position:relative; } .cta-band p { color:color-mix(in srgb,var(--bg) 72%,transparent); font-size:17px; max-width:48ch; margin:0 auto 30px; position:relative; } .cta-band .btn-primary { background:var(--bg); color:var(--ink); box-shadow:0 4px 0 #000; position:relative; }
-.metric-grid { display:grid; grid-template-columns:1.1fr .9fr .9fr; background:var(--ink); gap:1px; } .metric { background:var(--surface); padding:30px 28px; } .label { color:var(--muted); margin-bottom:10px; } .value { font-family:"Bricolage Grotesque"; font-size:clamp(38px,5vw,62px); line-height:1; letter-spacing:-.04em; } .unit { font-family:Inter,sans-serif; font-size:16px; color:var(--muted); margin-left:6px; } .note { color:var(--muted); font-size:14px; margin-top:12px; }
-.bar { height:18px; background:var(--bg); border:1.5px solid var(--ink); border-radius:999px; overflow:hidden; display:flex; margin:22px 0 16px; } .bar-solar{background:#f2c037} .bar-grid{background:#4e667a} .bar-east{background:#ff8b2e} .bar-west{background:#6f7cff} .legend { display:flex; gap:18px; flex-wrap:wrap; color:var(--muted); font-size:14px; } .key { display:inline-flex; align-items:center; gap:8px; } .swatch { width:10px; height:10px; border-radius:50%; border:1px solid var(--ink); }
-.table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:var(--radius); background:var(--surface); border:1px solid var(--ink); box-shadow:8px 8px 0 var(--ink); } .table th,.table td { padding:16px 18px; text-align:left; border-bottom:1px solid var(--line); } .table tr:last-child td { border-bottom:none; } .table th { color:var(--muted); font-size:12px; font-weight:500; font-family:"JetBrains Mono"; text-transform:uppercase; letter-spacing:.08em; } .table td:last-child { text-align:right; font-weight:700; }
-footer { border-top:1px solid var(--line); padding:44px 0; } .foot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:18px; } .foot .brand .name { font-size:18px; } .foot p,.foot-links a { font-size:13.5px; color:var(--muted); } .foot-links { display:flex; gap:24px; } .foot-links a:hover { color:var(--ink); }
-.reveal { opacity:1; transform:none; }
-@media (max-width:860px){ .grid,.steps,.metric-grid{grid-template-columns:1fr} .grid .card{border-right:0!important;border-bottom:1px solid var(--ink)!important} .grid .card:last-child{border-bottom:0!important} }
-@media (max-width:760px){ .wrap{padding:0 20px} .nav-links a.lk{display:none} .hero{padding:62px 0 40px} section{padding:56px 0} .hero h1{font-size:clamp(44px,15vw,72px)} .msg{max-width:92%} .cta-band{padding:52px 24px} }
-@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .typing i,.marquee-track,.pulse{animation:none} }
+:root {
+  --bg: #ffffff;
+  --ink: #0a0a0a;
+  --muted: #71717a;
+  --faint: #a1a1aa;
+  --line: #e7e7ea;
+  --line-2: #0a0a0a;
+  --dot: rgba(10,10,10,0.045);
+  --signal: #16b364;
+  --warn: #f59e0b;
+  --grid: #4b5563;
+  --radius: 2px;
+  --maxw: 1160px;
+  --ease: cubic-bezier(0.4, 0, 0.1, 1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  line-height: 1.65;
+  font-size: 14.5px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+h1, h2, h3, .display {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.06;
+}
+a { color: inherit; text-decoration: none; }
+.label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted);
+}
+.label.sig { color: var(--ink); }
+.dot-on { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--signal); margin-right: 8px; vertical-align: middle; animation: pulse 1.6s steps(1) infinite; }
+@keyframes pulse { 50% { opacity: 0.25; } }
+.cursor { display: inline-block; width: 0.55ch; height: 1.05em; background: var(--ink); margin-left: 3px; vertical-align: -3px; animation: blink 1.05s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+header {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.nav { display: flex; align-items: center; justify-content: space-between; height: 66px; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.mark {
+  width: 30px; height: 30px; border: 1px solid var(--ink);
+  display: grid; place-items: center;
+  font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 14px;
+}
+.brand .name { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; }
+.nav-mid { display: flex; gap: 30px; align-items: center; }
+.nav-mid a { font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); transition: color 0.15s var(--ease); }
+.nav-mid a:hover { color: var(--ink); }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 11px 20px; border-radius: var(--radius);
+  cursor: pointer; border: 1px solid var(--ink);
+  transition: background 0.18s var(--ease), color 0.18s var(--ease);
+}
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--bg); color: var(--ink); }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--ink); color: var(--bg); }
+@media (max-width: 800px) { .nav-mid { display: none; } }
+.hero { padding: 92px 0 56px; }
+.hero .sys { display: flex; align-items: center; gap: 14px; margin-bottom: 30px; flex-wrap: wrap; }
+.hero h1 { font-size: clamp(38px, 7.2vw, 92px); font-weight: 800; margin-bottom: 28px; }
+.hero p { font-size: 15.5px; color: var(--muted); max-width: 70ch; margin-bottom: 36px; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.hero-note { font-size: 12px; color: var(--faint); letter-spacing: 0.08em; }
+.terminal { margin-top: 56px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--bg); overflow: hidden; }
+.term-bar { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--line); }
+.term-bar .t { font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.term-bar .squares { display: flex; gap: 6px; }
+.term-bar .squares i { width: 9px; height: 9px; border: 1px solid var(--ink); display: block; }
+.term-body { padding: 22px 20px; font-size: 13.5px; line-height: 1.9; }
+.term-body .line { white-space: pre-wrap; }
+.term-body .pr { color: var(--ink); font-weight: 700; }
+.term-body .out { color: var(--muted); }
+.term-body .ok { color: var(--signal); }
+section { padding: 88px 0; }
+.section-head { border-top: 1px solid var(--ink); padding-top: 26px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 44px; }
+.section-head h2 { font-size: clamp(26px, 3.6vw, 40px); font-weight: 700; }
+.section-head .meta { font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+.section-sub { color: var(--muted); font-size: 14.5px; max-width: 70ch; margin-top: -28px; margin-bottom: 44px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+@media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+.cell { padding: 30px 26px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); position: relative; background: color-mix(in srgb, var(--bg) 96%, #f7f7f7); }
+.cell:hover { background: #fafafa; }
+.cell .idx { font-size: 12px; color: var(--faint); letter-spacing: 0.1em; }
+.cell h3 { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13.5px; letter-spacing: 0.08em; text-transform: uppercase; margin: 18px 0 10px; }
+.cell p { color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+.cell .fig { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: clamp(30px, 4vw, 44px); letter-spacing: 0.01em; margin-top: 10px; }
+.unit { font-size: 18px; color: var(--muted); margin-left: 4px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+@media (max-width: 820px) { .steps { grid-template-columns: 1fr; } }
+.step { padding: 28px 26px 28px 0; border-top: 2px solid var(--ink); }
+@media (max-width: 820px) { .step { padding-right: 0; } }
+.step .n { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 30px; margin-bottom: 16px; }
+.step h3 { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13.5px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+.step p { color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+.bars { border: 1px solid var(--ink); padding: 28px; background: var(--bg); }
+.bar-row { margin-bottom: 26px; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-top { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 10px; color: var(--muted); }
+.track { height: 18px; border: 1px solid var(--ink); display: flex; overflow: hidden; background: #f5f5f5; }
+.fill-solar { background: var(--signal); }
+.fill-grid { background: var(--grid); }
+.fill-feed { background: var(--warn); }
+.fill-east { background: #111827; }
+.fill-west { background: #9ca3af; }
+.table { width: 100%; border-collapse: collapse; border: 1px solid var(--ink); background: var(--bg); }
+.table th, .table td { padding: 15px 16px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table tr:last-child td { border-bottom: 0; }
+.table th { font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.table td:last-child, .table th:last-child { text-align: right; font-weight: 700; }
+.cta { border: 1px solid var(--ink); border-radius: var(--radius); padding: 52px 40px; text-align: left; }
+.cta .label { display: block; margin-bottom: 22px; }
+.cta h2 { font-size: clamp(28px, 4.4vw, 52px); font-weight: 800; margin-bottom: 18px; }
+.cta p { color: var(--muted); font-size: 14.5px; max-width: 76ch; }
+footer { border-top: 1px solid var(--line); padding: 40px 0; }
+.foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.foot .meta { font-size: 12px; color: var(--faint); letter-spacing: 0.08em; text-transform: uppercase; }
+.foot-links { display: flex; gap: 24px; }
+.foot-links a { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); transition: color 0.15s var(--ease); }
+.foot-links a:hover { color: var(--ink); }
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+  .cursor, .dot-on { animation: none; }
+}
 </style>
 </head>
 <body>
-  <header><div class="wrap nav"><a class="brand" href="#top"><span class="mark">E</span><span class="name">Daily Brief</span></a><nav class="nav-links"><a class="lk" href="#mix">Energy mix</a><a class="lk" href="#roofs">Roof sides</a><a class="lk" href="#sources">Sources</a><a class="btn btn-primary" href="https://github.com/vaidu-ai/daily-brief">Source →</a></nav></div></header>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top"><span class="mark">S</span><span class="name">SOLAR STATS</span></a>
+      <nav class="nav-mid">
+        <a href="#readings">Readings</a>
+        <a href="#derived">Derived</a>
+        <a href="#pv">PV split</a>
+        <a href="#pipeline">Pipeline</a>
+      </nav>
+      <a class="btn btn-primary" href="https://github.com/vaidu-ai/daily-brief">GitHub →</a>
+    </div>
+  </header>
+
   <main id="top">
-    <section class="hero"><div class="wrap"><span class="eyebrow mono"><span class="pulse"></span> Updated 18 Jun 2026, 21:00</span><h1>Today’s energy, <em>without</em> the dashboard spelunking.</h1><p class="hero-lead">A public snapshot of aggregate solar generation, grid use, export, and roof-side production. Secrets and private Home Assistant details stay off the page.</p><div class="hero-cta"><a class="btn btn-primary" href="#mix">Read the brief →</a><a class="btn btn-ghost" href="#roofs">Compare PV1 / PV2</a><span class="hero-note">Auto-updates daily at 21:00 local time.</span></div></div><div class="marquee" aria-hidden="true"><div class="marquee-track mono"><span><b>Solar 72.9 kWh</b></span><span>Export 61.8 kWh</span><span><b>Grid 3.3 kWh</b></span><span>PV1 east 46.9 kWh</span><span><b>PV2 west 27.9 kWh</b></span><span>Self-used 11.1 kWh</span><span><b>Solar 72.9 kWh</b></span><span>Export 61.8 kWh</span><span><b>Grid 3.3 kWh</b></span><span>PV1 east 46.9 kWh</span><span><b>PV2 west 27.9 kWh</b></span><span>Self-used 11.1 kWh</span></div></div></section>
-    <section id="mix"><div class="wrap"><div class="section-head"><span class="mono">/ Energy mix</span><h2>77% solar self-consumed. 23% grid.</h2><p>Total home consumption is estimated as grid consumption plus solar generation used at home.</p></div><div class="panel"><div class="panel-bar"><div style="display:flex;align-items:center;gap:10px"><div class="traffic"><span></span><span></span><span></span></div><span class="mono" style="color:var(--muted)">home · today</span></div><span class="mono" style="color:var(--accent)">2026-06-18 18:00 UTC</span></div><div class="metric-grid"><div class="metric"><div class="label mono">Total home consumption</div><div class="value">14.4<span class="unit">kWh</span></div><p class="note">Grid plus solar used directly by the home.</p></div><div class="metric"><div class="label mono">From grid</div><div class="value">3.3<span class="unit">kWh</span></div><p class="note">Imported energy today.</p></div><div class="metric"><div class="label mono">From solar</div><div class="value">11.1<span class="unit">kWh</span></div><p class="note">Generated and consumed locally.</p></div></div><div style="padding:28px"><div class="bar" aria-label="Energy mix"><span class="bar-solar" style="width:77%"></span><span class="bar-grid" style="width:23%"></span></div><div class="legend"><span class="key"><span class="swatch bar-solar"></span>Solar self-consumed: 77%</span><span class="key"><span class="swatch bar-grid"></span>Grid: 23%</span></div></div></div></div></section>
-    <section id="roofs"><div class="wrap"><div class="section-head"><span class="mono">/ Roof sides</span><h2>PV1 east produced 19.0 kWh more today.</h2><p>PV1 is labelled east and PV2 is labelled west for a quick side-by-side production comparison.</p></div><div class="panel"><div style="padding:30px"><div class="bar" aria-label="PV production split"><span class="bar-east" style="width:63%"></span><span class="bar-west" style="width:37%"></span></div><div class="legend"><span class="key"><span class="swatch bar-east"></span>PV1 east: 46.9 kWh (63%)</span><span class="key"><span class="swatch bar-west"></span>PV2 west: 27.9 kWh (37%)</span></div></div></div></div></section>
-    <section id="sources"><div class="wrap"><div class="section-head"><span class="mono">/ Source readings</span><h2>The raw aggregate numbers.</h2><p>Only public-safe aggregate energy values are published here. Credentials, URLs, private paths, and private configuration are not included.</p></div><table class="table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Solar generated today</td><td>72.9 kWh</td></tr><tr><td>Solar exported / feed-in today</td><td>61.8 kWh</td></tr><tr><td>Grid consumed today</td><td>3.3 kWh</td></tr><tr><td>Solar self-consumed today</td><td>11.1 kWh</td></tr><tr><td>PV1 east production</td><td>46.9 kWh</td></tr><tr><td>PV2 west production</td><td>27.9 kWh</td></tr></tbody></table></div></section>
-    <section><div class="wrap"><div class="cta-band"><span class="mono">/ Automation</span><h2>Generated, committed, published.</h2><p>This page is regenerated by a local Hermes scheduled job. The updater reads Home Assistant aggregate sensors, writes this static page, commits changes, pushes to GitHub, and verifies Pages after publishing.</p></div></div></section>
+    <section class="hero">
+      <div class="wrap">
+        <div class="sys reveal">
+          <span class="label sig"><span class="dot-on"></span>Data current</span>
+          <span class="label">Updated 18 Jun 2026, 22:27</span>
+          <span class="label">2026-06-18 19:27 UTC</span>
+        </div>
+        <h1 class="reveal">Daily solar<br />technical<br />snapshot<span class="cursor"></span></h1>
+        <p class="reveal">Aggregate Home Assistant energy readings rendered as a static public page: generation, export, grid import, estimated self-consumption, and PV1/PV2 channel split.</p>
+        <div class="hero-cta reveal">
+          <a class="btn btn-primary" href="#readings">Read values →</a>
+          <a class="btn btn-ghost" href="#derived">View formulas</a>
+          <span class="hero-note">[ CRON · DAILY 21:00 LOCAL · STATIC HTML ]</span>
+        </div>
+
+        <div class="terminal reveal">
+          <div class="term-bar">
+            <span class="t">solar://home-assistant/today</span>
+            <span class="squares"><i></i><i></i><i></i></span>
+          </div>
+          <div class="term-body">
+            <div class="line"><span class="pr">&gt;</span> inverter_yield_today         73.0 kWh</div>
+            <div class="line"><span class="pr">&gt;</span> feed_in_energy_today         61.8 kWh</div>
+            <div class="line"><span class="pr">&gt;</span> grid_consumed_today           5.4 kWh</div>
+            <div class="line"><span class="ok">✓</span> <span class="out">self_consumed = max(yield - feed_in, 0) = 11.2 kWh</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="readings">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>Source readings</h2>
+          <span class="meta">// 05 SENSOR VALUES</span>
+        </div>
+        <p class="section-sub reveal">Rounded daily aggregate values. No credentials, private URLs, addresses, or local configuration are published.</p>
+        <div class="grid">
+          <div class="cell reveal"><span class="idx">[01]</span><h3>Inverter yield today</h3><div class="fig">73.0<span class="unit">kWh</span></div><p>Total solar yield reported by the Solax inverter daily sensor.</p></div>
+          <div class="cell reveal"><span class="idx">[02]</span><h3>Feed-in export today</h3><div class="fig">61.8<span class="unit">kWh</span></div><p>Solar energy exported to the grid today.</p></div>
+          <div class="cell reveal"><span class="idx">[03]</span><h3>Grid import today</h3><div class="fig">5.4<span class="unit">kWh</span></div><p>Energy consumed from the grid today.</p></div>
+          <div class="cell reveal"><span class="idx">[04]</span><h3>PV1 east channel</h3><div class="fig">46.9<span class="unit">kWh</span></div><p>Daily generation on the PV1/east-labelled input.</p></div>
+          <div class="cell reveal"><span class="idx">[05]</span><h3>PV2 west channel</h3><div class="fig">27.9<span class="unit">kWh</span></div><p>Daily generation on the PV2/west-labelled input.</p></div>
+          <div class="cell reveal"><span class="idx">[06]</span><h3>PV channel sum</h3><div class="fig">74.8<span class="unit">kWh</span></div><p>PV1 plus PV2. Kept separate from inverter yield because sensors can differ.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="derived">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>Derived values</h2>
+          <span class="meta">// FORMULAS</span>
+        </div>
+        <div class="steps">
+          <div class="step reveal"><div class="n">01</div><h3>Solar self-consumed</h3><p>max(inverter yield − feed-in export, 0) = 11.2 kWh.</p></div>
+          <div class="step reveal"><div class="n">02</div><h3>Estimated home consumption</h3><p>grid import + solar self-consumed = 16.6 kWh.</p></div>
+          <div class="step reveal"><div class="n">03</div><h3>Energy source split</h3><p>67% local solar / 33% grid for estimated home consumption.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pv">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>PV split</h2>
+          <span class="meta">// EAST VS WEST</span>
+        </div>
+        <p class="section-sub reveal">PV1 east is ahead by 19.0 kWh today. Percentages below use PV1 + PV2 channel sum as the denominator.</p>
+        <div class="bars reveal">
+          <div class="bar-row">
+            <div class="bar-top"><span>Consumption source</span><span>67% solar self-consumed · 33% grid</span></div>
+            <div class="track"><span class="fill-solar" style="width:67%"></span><span class="fill-grid" style="width:33%"></span></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-top"><span>Solar yield destination</span><span>85% exported · 15% used locally</span></div>
+            <div class="track"><span class="fill-feed" style="width:85%"></span><span class="fill-solar" style="width:15%"></span></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-top"><span>PV channel split</span><span>63% PV1 east · 37% PV2 west</span></div>
+            <div class="track"><span class="fill-east" style="width:63%"></span><span class="fill-west" style="width:37%"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>Pipeline</h2>
+          <span class="meta">// AUTOMATION DETAILS</span>
+        </div>
+        <table class="table reveal">
+          <thead><tr><th>Item</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Schedule</td><td>Daily at 21:00 local time</td></tr>
+            <tr><td>Collector</td><td>Hermes cron script</td></tr>
+            <tr><td>Data source</td><td>Home Assistant aggregate energy sensors</td></tr>
+            <tr><td>Published files</td><td>index.html, README.md, .nojekyll</td></tr>
+            <tr><td>Repository</td><td>vaidu-ai/daily-brief</td></tr>
+            <tr><td>Live verification markers</td><td>style, timestamp, kWh values, PV labels</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="cta reveal">
+          <span class="label"><span class="dot-on"></span>Public-safe output</span>
+          <h2>Only aggregate energy data.</h2>
+          <p>The page intentionally excludes Home Assistant hostnames, API tokens, exact local paths, addresses, account details, and non-energy prose. It is a compact technical snapshot of today’s solar and grid readings.</p>
+        </div>
+      </div>
+    </section>
   </main>
-  <footer><div class="wrap foot"><a class="brand" href="#top"><span class="mark">E</span><span class="name">Daily Brief</span></a><p>© 2026. Public aggregate energy snapshot.</p><div class="foot-links"><a href="#mix">Energy mix</a><a href="#roofs">Roof sides</a><a href="https://github.com/vaidu-ai/daily-brief">GitHub</a></div></div></footer>
+
+  <footer>
+    <div class="wrap foot">
+      <a class="brand" href="#top"><span class="mark">S</span><span class="name">SOLAR STATS</span></a>
+      <span class="meta">© 2026 · DAILY AGGREGATE ENERGY SNAPSHOT</span>
+      <div class="foot-links"><a href="#readings">Readings</a><a href="#derived">Formulas</a><a href="https://github.com/vaidu-ai/daily-brief">GitHub</a></div>
+    </div>
+  </footer>
+
+  <script>
+    const items = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            e.target.style.transitionDelay = (i % 3) * 60 + 'ms';
+            e.target.classList.add('in');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      items.forEach((el) => io.observe(el));
+    } else {
+      items.forEach((el) => el.classList.add('in'));
+    }
+  </script>
 </body>
 </html>

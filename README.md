@@ -1,15 +1,22 @@
-# Daily Brief
+# Solar Stats
 
-A clean, minimal GitHub Pages daily brief for home electricity readings from Home Assistant.
+Static GitHub Pages snapshot of daily aggregate solar and grid energy readings.
 
-Latest snapshot:
+Latest source readings:
 
-- Total home consumption: 14.4 kWh
-- From grid: 3.3 kWh
-- From solar self-consumption: 11.1 kWh
-- Solar generated: 72.9 kWh
-- PV1 east generated: 46.9 kWh
-- PV2 west generated: 27.9 kWh
-- Solar exported/feed-in: 61.8 kWh
+- Inverter yield today: 73.0 kWh
+- Feed-in export today: 61.8 kWh
+- Grid import today: 5.4 kWh
+- PV1 east channel: 46.9 kWh
+- PV2 west channel: 27.9 kWh
+- PV channel sum: 74.8 kWh
 
-Public-safe: no credentials, tokens, private paths, addresses, or Home Assistant secrets are committed.
+Derived values:
+
+- Solar self-consumed: 11.2 kWh
+- Estimated home consumption: 16.6 kWh
+- Consumption split: 67% solar self-consumed / 33% grid
+- Solar yield destination: 85% exported / 15% used locally
+- PV channel split: 63% PV1 east / 37% PV2 west
+
+Public-safe: no credentials, tokens, private paths, addresses, Home Assistant URLs, or private configuration are committed.
