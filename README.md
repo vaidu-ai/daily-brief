@@ -4,12 +4,12 @@ A clean, minimal GitHub Pages daily brief for home electricity readings from Hom
 
 Latest snapshot:
 
-- Total home consumption: 15.2 kWh
-- From grid: 7.2 kWh
-- From solar self-consumption: 8.0 kWh
-- Solar generated: 46.3 kWh
-- PV1 east generated: 23.7 kWh
-- PV2 west generated: 24.0 kWh
-- Solar exported/feed-in: 38.3 kWh
+- Total home consumption: 14.4 kWh
+- From grid: 3.3 kWh
+- From solar self-consumption: 11.1 kWh
+- Solar generated: 72.9 kWh
+- PV1 east generated: 46.9 kWh
+- PV2 west generated: 27.9 kWh
+- Solar exported/feed-in: 61.8 kWh
 
 Public-safe: no credentials, tokens, private paths, addresses, or Home Assistant secrets are committed.
